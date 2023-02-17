@@ -41,11 +41,12 @@ impl Lox {
         let tokens = scanner.tokens;
 
         for token in tokens {
-            println!("{}", token.to_string());
+            println!("{:?}", token);
         }
 
         if self.error_reporter.had_error {
             std::process::exit(65);
         }
+
     }
 }

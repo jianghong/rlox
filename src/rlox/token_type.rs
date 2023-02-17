@@ -1,5 +1,6 @@
 use core::fmt;
 
+#[derive(Copy, Clone, Debug)]
 pub enum TokenType {
     // Single-character tokens.
     LeftParen, RightParen, LeftBrace, RightBrace,
