@@ -109,6 +109,20 @@ impl Scanner<'_> {
                     while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
                     }
+                } else if self.r#match('*') {
+                    // C style comment `/*` goes until `*/`
+                    while self.peek() != '*' && self.peek_next() != '/' {
+                        self.advance();
+
+                        if self.is_at_end() {
+                            self.error_reporter.error(self.line, &"Unterminated comment".to_string());
+                            break;
+                        }
+                    }
+
+                    // advance twice to move past `*/`
+                    self.advance();
+                    self.advance();
                 } else {
                     self.add_token(TokenType::Slash, "".to_string());
                 }
@@ -197,7 +211,7 @@ impl Scanner<'_> {
     }
 
     fn peek_next(&self) -> char {
-        if self.current + 1 > self.source.len() as u32 {
+        if self.current + 1 >= self.source.len() as u32 {
             return '\0'
         }
         return self.source.chars().nth((self.current + 1) as usize).unwrap()
