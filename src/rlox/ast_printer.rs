@@ -5,10 +5,10 @@ use super::expr::*;
 pub fn main() {
     let test_expr: Binary<String> = Binary {
         left: Box::new(Unary {
-            operator: Token::new(TokenType::Minus, "-".to_string(), "".to_string(), 1),
+            operator: Token::new(TokenType::Minus, "-".to_string(), None, 1),
             right: Box::new(Literal { value: Some("123".to_string()) })
         }),
-        operator: Token::new(TokenType::Star, "*".to_string(), "".to_string(), 1),
+        operator: Token::new(TokenType::Star, "*".to_string(), None, 1),
         right: Box::new(Grouping {
             expression: Box::new(Literal { value: Some("45.67".to_string()) })
         })
