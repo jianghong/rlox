@@ -42,12 +42,18 @@ impl Lox {
         let mut scanner = Scanner::new(source, &mut self.error_reporter);
         scanner.scan_tokens();
         let tokens = scanner.tokens;
-        let mut parser = Parser::new(tokens);
+        let mut parser = Parser::new(tokens, &mut self.error_reporter);
 
-        let expr: Box<dyn Expr<String>> = parser.parse();
+        match parser.parse() {
+            Ok(expr) => {
+                let mut ast_printer = AstPrinter::new();
+                let ast = expr.accept(&mut ast_printer);
+                println!("{}", ast)
+            }
+            Err(_) => {
+
+            }
+        }
         
-        let mut ast_printer = AstPrinter::new();
-        let ast = expr.accept(&mut ast_printer);
-        println!("{}", ast)
     }
 }

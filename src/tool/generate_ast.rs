@@ -1,7 +1,6 @@
 use crate::rlox::token::Token;
-use crate::rlox::token_type::TokenType;
 use std::collections::HashMap;
-use std::fs::{self, File};
+use std::fs::{File};
 use std::io::prelude::*;
 use std::io::LineWriter;
 
