@@ -14,14 +14,18 @@ pub fn main() {
         })
     };
 
-    let ast_printer = AstPrinter {};
+    let ast_printer = AstPrinter::new();
     println!("{}", ast_printer.print(Box::new(test_expr)));
 }
 
-struct AstPrinter {}
+pub struct AstPrinter {}
 
 impl AstPrinter {
-    fn print(&self, expr: Box<dyn Expr<String>>) -> String {
+    pub fn new() -> AstPrinter {
+        AstPrinter {}
+    }
+
+    pub fn print(&self, expr: Box<dyn Expr<String>>) -> String {
         expr.accept(self)
     }
 

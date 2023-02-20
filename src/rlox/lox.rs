@@ -1,5 +1,8 @@
 use super::error_reporter::ErrorReporter;
 use super::scanner::Scanner;
+use super::parser::Parser;
+use super::expr::Expr;
+use super::ast_printer::AstPrinter;
 
 pub struct Lox {
     error_reporter: ErrorReporter,
@@ -39,14 +42,12 @@ impl Lox {
         let mut scanner = Scanner::new(source, &mut self.error_reporter);
         scanner.scan_tokens();
         let tokens = scanner.tokens;
+        let mut parser = Parser::new(tokens);
 
-        for token in tokens {
-            println!("{:?}", token);
-        }
-
-        if self.error_reporter.had_error {
-            std::process::exit(65);
-        }
-
+        let expr: Box<dyn Expr<String>> = parser.parse();
+        
+        let mut ast_printer = AstPrinter::new();
+        let ast = expr.accept(&mut ast_printer);
+        println!("{}", ast)
     }
 }
