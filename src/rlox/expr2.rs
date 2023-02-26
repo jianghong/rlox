@@ -3,7 +3,7 @@ use crate::rlox::token::Token;
 pub enum Expr {
     Literal(Option<String>),
     Binary {
-        left:Box<Expr>,
+        left: Box<Expr>,
         operator: Token,
         right: Box<Expr>
     },
@@ -17,7 +17,7 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn accept<T>(&self, visitor: &dyn Visitor<T>) -> T {
+    fn accept<T>(&self, visitor: &dyn Visitor<T>) -> T {
         match self {
             Expr::Literal(value) => visitor.visit_literal(value),
             Expr::Binary { left, operator, right } => visitor.visit_binary(left, operator, right),
