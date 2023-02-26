@@ -19,8 +19,14 @@ impl Parser<'_> {
         Parser { tokens, current: 0, error_reporter: error_reporter }
     }
     
-    pub fn parse(&mut self) -> Result<Expr> {
-        self.expression()
+    pub fn parse(&mut self) -> Result<Vec<Expr>> {
+        let mut expressions = vec![self.expression()?];
+        let mut expression;
+        while self.r#match(vec![TokenType::Comma]) {
+            expression = self.expression()?;
+            expressions.push(expression);
+        }
+        Ok(expressions)
     }
 
     fn expression(&mut self) -> Result<Expr> {

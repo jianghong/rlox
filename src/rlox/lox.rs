@@ -42,17 +42,13 @@ impl Lox {
         scanner.scan_tokens();
         let tokens = scanner.tokens;
         let mut parser = Parser::new(tokens, &mut self.error_reporter);
-
-        match parser.parse() {
-            Ok(expr) => {
-                let mut ast_printer = AstPrinter::new();
+        
+        if let Ok(expressions) = parser.parse() {
+            let mut ast_printer = AstPrinter::new();
+            for expr in expressions {
                 let ast = expr.accept(&mut ast_printer);
-                println!("{}", ast)
-            }
-            Err(_) => {
-
+                println!("{}", ast);
             }
         }
-        
     }
 }
