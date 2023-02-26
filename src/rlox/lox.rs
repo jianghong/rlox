@@ -1,7 +1,6 @@
 use super::error_reporter::ErrorReporter;
 use super::scanner::Scanner;
 use super::parser::Parser;
-use super::expr::Expr;
 use super::ast_printer::AstPrinter;
 
 pub struct Lox {

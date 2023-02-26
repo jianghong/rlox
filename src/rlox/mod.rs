@@ -5,5 +5,4 @@ pub mod scanner;
 pub mod error_reporter;
 pub mod ast_printer;
 pub mod expr;
-pub mod expr2;
 pub mod parser;

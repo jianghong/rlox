@@ -1,6 +1,7 @@
 use super::token_type::TokenType;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
