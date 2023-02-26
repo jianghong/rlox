@@ -63,6 +63,14 @@ impl Visitor<String> for AstPrinter {
     }
 
     fn visit_ternary(&self, condition: &Expr, then_branch: &Expr, else_branch: &Expr) -> String {
-        self.parenthesize(&"if".to_string(), &vec![condition, then_branch, else_branch])
+        let mut result = String::new();
+        result.push_str("(if ");
+        result.push_str(&condition.accept(self));
+        result.push_str(" then ");
+        result.push_str(&then_branch.accept(self));
+        result.push_str(" else ");
+        result.push_str(&else_branch.accept(self));
+        result.push_str(")");
+        result
     }
 }

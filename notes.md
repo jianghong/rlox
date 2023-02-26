@@ -2,7 +2,8 @@
 
 Grammar
 ```
-expression     → equality | (equality "," equality)* ;
+expression     → equality ( ( "?" equality ":" equality )* | ( "," equality )* )* ;
+ternary        → equality "?" equality ":" equality
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;

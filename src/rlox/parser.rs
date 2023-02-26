@@ -26,6 +26,17 @@ impl Parser<'_> {
     fn expression(&mut self) -> Result<Expr> {
         let mut expr = self.equality()?;
 
+        while self.r#match(vec![TokenType::Question]) {
+            let then_branch = self.expression()?;
+            self.consume(TokenType::Colon, "Expect ':' after then branch.")?;
+            let else_branch = self.expression()?;
+            expr = Expr::Ternary {
+                condition: Box::new(expr),
+                then_branch: Box::new(then_branch),
+                else_branch: Box::new(else_branch),
+            };
+        }
+
         while self.r#match(vec![TokenType::Comma]) {
             let operator = self.previous().clone();
             let right = self.equality()?;

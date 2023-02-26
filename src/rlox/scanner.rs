@@ -71,6 +71,8 @@ impl Scanner<'_> {
             '+' => self.add_token(TokenType::Plus, None),
             ';' => self.add_token(TokenType::Semicolon, None),
             '*' => self.add_token(TokenType::Star, None),
+            '?' => self.add_token(TokenType::Question, None),
+            ':' => self.add_token(TokenType::Colon, None),
             '!' => {
                 let token_type = if self.r#match('=') {
                     TokenType::BangEqual
@@ -130,13 +132,13 @@ impl Scanner<'_> {
             ' ' | '\r' | '\t' => {},
             '\n' => self.line += 1,
             '"' => self.string(),
-            _ => {
+            unexpected => {
                 if self.is_digit(c) {
                     self.number();
                 } else if self.is_alpha(c) {
                     self.identifier();
                 } else {
-                    self.error_reporter.error(self.line, &"Unexpected character.".to_string());
+                    self.error_reporter.error(self.line, &format!("Unexpected character {unexpected}"));
                 }
             }
         }
