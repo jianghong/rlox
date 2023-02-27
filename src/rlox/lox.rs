@@ -1,15 +1,19 @@
 use super::error_reporter::ErrorReporter;
 use super::scanner::Scanner;
 use super::parser::Parser;
-use super::ast_printer::AstPrinter;
+use super::interpreter::Interpreter;
 
 pub struct Lox {
     error_reporter: ErrorReporter,
+    interpreter: Interpreter,
 }
 
 impl Lox {
     pub fn new() -> Lox {
-        Lox { error_reporter: ErrorReporter::new() }
+        Lox {
+            error_reporter: ErrorReporter::new(),
+            interpreter: Interpreter::new(),
+        }
     }
 
     pub fn main(&mut self) {
@@ -44,9 +48,10 @@ impl Lox {
         let mut parser = Parser::new(tokens, &mut self.error_reporter);
         
         if let Ok(expr) = parser.parse() {
-            let mut ast_printer = AstPrinter::new();
-            let ast = expr.accept(&mut ast_printer);
-            println!("{}", ast)
+            // let mut ast_printer = AstPrinter::new();
+            // let ast = expr.accept(&mut ast_printer);
+            // println!("{}", ast)
+            self.interpreter.interpret(&expr)
         }
     }
 }

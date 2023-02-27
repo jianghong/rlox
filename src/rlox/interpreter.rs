@@ -2,9 +2,17 @@ use crate::rlox::expr::*;
 use crate::rlox::token::Token;
 use crate::rlox::token_type::TokenType;
 
-struct Interpreter;
+pub struct Interpreter;
 
 impl Interpreter {
+    pub fn new() -> Self {
+        Interpreter
+    }
+
+    pub fn interpret(&self, expression: &Expr) {
+        println!("{}", self.stringify(&self.evalute(expression)));
+    }
+
     fn evalute(&self, expression: &Expr) -> Value {
         expression.accept(self)
     }
@@ -15,6 +23,16 @@ impl Interpreter {
             Value::False => Value::False,
             Value::True => Value::True,
             _ => Value::True,
+        }
+    }
+    
+    fn stringify(&self, value: &Value) -> String {
+        match value {
+            Value::Nil => "nil".to_string(),
+            Value::True => "true".to_string(),
+            Value::False => "false".to_string(),
+            Value::Number(value) => value.to_string(),
+            Value::String(value) => value.to_string(),
         }
     }
 }

@@ -13,3 +13,7 @@ unary          → ( "!" | "-" ) unary
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 ```
+
+# TODOs
+- [ ] Comparisons crash with stack overflow
+- [ ] https://craftinginterpreters.com/evaluating-expressions.html#runtime-errors
