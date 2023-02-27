@@ -131,20 +131,24 @@ impl Parser<'_> {
 
     fn primary(&mut self) -> Result<Expr> {
         if self.r#match(vec![TokenType::False]) {
-            return Ok(Expr::Literal(Some("false".to_string())));
+            return Ok(Expr::Literal(Some(Value::False)));
         }
 
         if self.r#match(vec![TokenType::True]) {
-            return Ok(Expr::Literal(Some("true".to_string())));
+            return Ok(Expr::Literal(Some(Value::True)));
         }
 
         if self.r#match(vec![TokenType::Nil]) {
-            return Ok(Expr::Literal(Some("nil".to_string())));
+            return Ok(Expr::Literal(Some(Value::Nil)));
         }
 
-        if self.r#match(vec![TokenType::Number, TokenType::String]) {
-            return Ok(Expr::Literal(Some(self.previous().lexeme.clone())));
+        if self.r#match(vec![TokenType::Number]) {
+            return Ok(Expr::Literal(Some(Value::to_number(&self.previous().lexeme))));
         }
+
+        if self.r#match(vec![TokenType::String]) {
+            return Ok(Expr::Literal(Some(Value::to_string(&self.previous().lexeme))));
+        }        
 
         if self.r#match(vec![TokenType::LeftParen]) {
             let expr = self.expression()?;
