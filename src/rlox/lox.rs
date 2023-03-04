@@ -51,7 +51,7 @@ impl Lox {
             // let mut ast_printer = AstPrinter::new();
             // let ast = expr.accept(&mut ast_printer);
             // println!("{}", ast)
-            self.interpreter.interpret(&expr)
+            self.interpreter.interpret(&expr, &mut self.error_reporter)
         }
     }
 }

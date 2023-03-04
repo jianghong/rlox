@@ -1,6 +1,9 @@
+use anyhow::{Result, anyhow};
+
 use crate::rlox::expr::*;
 use crate::rlox::token::Token;
 use crate::rlox::token_type::TokenType;
+use crate::rlox::error_reporter::ErrorReporter;
 
 pub struct Interpreter;
 
@@ -9,11 +12,15 @@ impl Interpreter {
         Interpreter
     }
 
-    pub fn interpret(&self, expression: &Expr) {
-        println!("{}", self.stringify(&self.evalute(expression)));
+    pub fn interpret(&self, expression: &Expr, error_reporter: &mut ErrorReporter) {
+        let result = self.evalute(expression);
+        match result {
+            Ok(value) => println!("{}", self.stringify(&value)),
+            Err(error) => error_reporter.error(0, &error.to_string())
+        }
     }
 
-    fn evalute(&self, expression: &Expr) -> Value {
+    fn evalute(&self, expression: &Expr) -> Result<Value> {
         expression.accept(self)
     }
 
@@ -37,33 +44,35 @@ impl Interpreter {
     }
 }
 
-impl Visitor<Value> for Interpreter {
-    fn visit_literal(&self, value: &Option<Value>) -> Value {
-        match value {
+impl Visitor<Result<Value>> for Interpreter {
+    fn visit_literal(&self, value: &Option<Value>) -> Result<Value> {
+        let value = match value {
             Some(value) => value.clone(),
             None => Value::Nil,
-        }
+        };
+        
+        Ok(value)
     }
 
-    fn visit_unary(&self, operator: &Token, right: &Expr) -> Value {
-        let right = self.evalute(right);
+    fn visit_unary(&self, operator: &Token, right: &Expr) -> Result<Value> {
+        let right = self.evalute(right)?;
         
         match operator.token_type {
             TokenType::Minus => {
                 if let Value::Number(value) = right {
-                    Value::Number(-value)
+                    Ok(Value::Number(-value))
                 } else {
-                    panic!("Applying '-' operator to a non number.")
+                    Err(anyhow!("Applying '-' operator to a non number."))
                 }
             }
-            TokenType::Bang => self.is_truthy(&right),
-            _ => right
+            TokenType::Bang => Ok(self.is_truthy(&right)),
+            _ => Ok(right)
         }
     }
 
-    fn visit_binary(&self, left: &Expr, operation: &Token, right: &Expr) -> Value {
-        let left = self.evalute(left);
-        let right = self.evalute(right);
+    fn visit_binary(&self, left: &Expr, operation: &Token, right: &Expr) -> Result<Value> {
+        let left = self.evalute(left)?;
+        let right = self.evalute(right)?;
         match operation.token_type {
             TokenType::Minus => {
                 left - right
@@ -78,57 +87,75 @@ impl Visitor<Value> for Interpreter {
                 left * right
             },
             TokenType::Greater => {
-                if left > right {
+                if !left.is_number() || !right.is_number() {
+                    return Err(anyhow!("Applying '>' operator to a non number."));
+                }
+                let value = if left > right {
                     Value::True
                 } else {
                     Value::False
-                }
+                };
+                Ok(value)
             },
             TokenType::GreaterEqual => {
-                if left >= right {
+                if !left.is_number() || !right.is_number() {
+                    return Err(anyhow!("Applying '>' operator to a non number."));
+                }
+                let value = if left >= right {
                     Value::True
                 } else {
                     Value::False
-                }
+                };
+                Ok(value)
             },
             TokenType::Less => {
-                if left < right {
+                if !left.is_number() || !right.is_number() {
+                    return Err(anyhow!("Applying '>' operator to a non number."));
+                }
+                let value = if left < right {
                     Value::True
                 } else {
                     Value::False
-                }
+                };
+                Ok(value)
             },
             TokenType::LessEqual => {
-                if left <= right {
+                if !left.is_number() || !right.is_number() {
+                    return Err(anyhow!("Applying '>' operator to a non number."));
+                }
+                let value = if left <= right {
                     Value::True
                 } else {
                     Value::False
-                }
+                };
+                Ok(value)
             },
             TokenType::BangEqual => {
-                if left != right {
+                let value = if left != right {
                     Value::True
                 } else {
                     Value::False
-                }
+                };
+                Ok(value)
             },
             TokenType::EqualEqual => {
-                if left == right {
+                let value = if left == right {
                     Value::True
                 } else {
                     Value::False
-                }
+                };
+                Ok(value)
             },
-            _ => panic!("Invalid binary operation: {}", operation.token_type.to_string())
+            _ => Err(anyhow!("Invalid binary operation: {}", operation.token_type.to_string()))
         }
     }
 
-    fn visit_grouping(&self, expression: &Expr) -> Value {
+    fn visit_grouping(&self, expression: &Expr) -> Result<Value> {
         self.evalute(expression)
     }
 
-    fn visit_ternary(&self, condition: &Expr, then_branch: &Expr, else_branch: &Expr) -> Value {
-        if self.is_truthy(&self.evalute(condition)) == Value::True {
+    fn visit_ternary(&self, condition: &Expr, then_branch: &Expr, else_branch: &Expr) -> Result<Value> {
+        if self.is_truthy(&self.evalute(condition)?) == Value::True {
             self.evalute(then_branch)
         } else {
             self.evalute(else_branch)
@@ -139,14 +166,14 @@ impl Visitor<Value> for Interpreter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rlox::test_utils::tests::helper_create_expr_from_string;
-    
+    use crate::rlox::{test_utils::tests::helper_create_expr_from_string};
+
     #[test]
     fn test_number_equal() {
         let expression = helper_create_expr_from_string("1 == 1");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
-        assert_eq!(value, Value::True);
+        assert_eq!(value.unwrap(), Value::True);
     }
 
     #[test]
@@ -154,7 +181,7 @@ mod tests {
         let expression = helper_create_expr_from_string("nil == nil");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
-        assert_eq!(value, Value::True);
+        assert_eq!(value.unwrap(), Value::True);
     }
 
     #[test]
@@ -162,7 +189,7 @@ mod tests {
         let expression = helper_create_expr_from_string("true == true");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
-        assert_eq!(value, Value::True);
+        assert_eq!(value.unwrap(), Value::True);
     }
 
     #[test]
@@ -170,7 +197,7 @@ mod tests {
         let expression = helper_create_expr_from_string("\"hello\" == \"hello\"");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
-        assert_eq!(value, Value::True);
+        assert_eq!(value.unwrap(), Value::True);
     }
 
     #[test]
@@ -178,6 +205,62 @@ mod tests {
         let expression = helper_create_expr_from_string("1 < 2");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
-        assert_eq!(value, Value::True);
+        assert_eq!(value.unwrap(), Value::True);
+    }
+
+    #[test]
+    fn test_unary_minus_on_non_number() {
+        let expression = helper_create_expr_from_string("-\"hello\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert!(value.is_err());
+    }
+
+    #[test]
+    fn test_add_number_with_non_number() {
+        let expression = helper_create_expr_from_string("1 + \"world\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert!(value.is_err());
+    }
+
+    #[test]
+    fn test_sub_number_with_non_number() {
+        let expression = helper_create_expr_from_string("1 - \"world\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert!(value.is_err());
+    }
+
+    #[test]
+    fn test_mul_number_with_non_number() {
+        let expression = helper_create_expr_from_string("1 * \"world\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert!(value.is_err());
+    }
+
+    #[test]
+    fn test_div_number_with_non_number() {
+        let expression = helper_create_expr_from_string("1 / \"world\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert!(value.is_err());
+    }
+
+    #[test]
+    fn test_compare_number_with_non_number() {
+        let expression = helper_create_expr_from_string("1 < \"world\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert!(value.is_err());
+    }
+
+    #[test]
+    fn test_number_equal_non_number() {
+        let expression = helper_create_expr_from_string("1 == \"world\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value.unwrap(), Value::False);
     }
 }

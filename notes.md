@@ -15,5 +15,6 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 ```
 
 # TODOs
-- [ ] Comparisons crash with stack overflow
-- [ ] https://craftinginterpreters.com/evaluating-expressions.html#runtime-errors
+- [x] Comparisons crash with stack overflow
+- [x] https://craftinginterpreters.com/evaluating-expressions.html#runtime-errors
+- [ ] https://craftinginterpreters.com/evaluating-expressions.html extra credit section

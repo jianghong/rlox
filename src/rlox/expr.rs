@@ -1,3 +1,5 @@
+use anyhow::{anyhow, Result};
+
 use crate::rlox::token::Token;
 use std::ops::{Add, Sub, Mul, Div};
 use std::cmp::Ordering;
@@ -13,76 +15,76 @@ pub enum Value {
 }
 
 impl Add for Value {
-    type Output = Self;
+    type Output = Result<Self>;
 
-    fn add(self, other: Self) -> Self {
+    fn add(self, other: Self) -> Result<Self> {
         match self {
             Value::Number(value) => {
                 if let Value::Number(other) = other {
-                    Value::Number(value + other)
+                    Ok(Value::Number(value + other))
                 } else {
-                    panic!("Applying '+' operator to a non number.")
+                    Err(anyhow!("Applying '+' operator to a non number."))
                 }
             }
             Value::String(value) => {
                 if let Value::String(other) = other {
-                    Value::String(format!("{}{}", value, other))
+                    Ok(Value::String(format!("{}{}", value, other)))
                 } else {
-                    panic!("Applying '+' operator to a non string.")
+                    Err(anyhow!("Applying '+' operator to a non string."))
                 }
             }
-            _ => panic!("Applying '+' operator to value that is not applicable."),
+            _ => Err(anyhow!("Applying '+' operator to value that is not applicable.")),
         } 
     }
 }
 
 impl Sub for Value {
-    type Output = Self;
+    type Output = Result<Self>;
 
-    fn sub(self, other: Self) -> Self {
+    fn sub(self, other: Self) -> Result<Self> {
         match self {
             Value::Number(value) => {
                 if let Value::Number(other) = other {
-                    Value::Number(value - other)
+                    Ok(Value::Number(value - other))
                 } else {
-                    panic!("Applying '-' operator to a non number.")
+                    Err(anyhow!("Applying '-' operator to a non number."))
                 }
             }
-            _ => panic!("Applying '-' operator to a non number."),
+            _ => Err(anyhow!("Applying '-' operator to a non number.")),
         }
     }
 }
 
 impl Mul for Value {
-    type Output = Self;
+    type Output = Result<Self>;
 
-    fn mul(self, other: Self) -> Self {
+    fn mul(self, other: Self) -> Result<Self> {
         match self {
             Value::Number(value) => {
                 if let Value::Number(other) = other {
-                    Value::Number(value * other)
+                    Ok(Value::Number(value * other))
                 } else {
-                    panic!("Applying '*' operator to a non number.")
+                    Err(anyhow!("Applying '*' operator to a non number."))
                 }
             }
-            _ => panic!("Applying '*' operator to a non number."),
+            _ => Err(anyhow!("Applying '*' operator to a non number.")),
         }
     }
 }
 
 impl Div for Value {
-    type Output = Self;
+    type Output = Result<Self>;
 
-    fn div(self, other: Self) -> Self {
+    fn div(self, other: Self) -> Result<Self> {
         match self {
             Value::Number(value) => {
                 if let Value::Number(other) = other {
-                    Value::Number(value / other)
+                    Ok(Value::Number(value / other))
                 } else {
-                    panic!("Applying '/' operator to a non number.")
+                    Err(anyhow!("Applying '/' operator to a non number."))
                 }
             }
-            _ => panic!("Applying '/' operator to a non number."),
+            _ => Err(anyhow!("Applying '/' operator to a non number.")),
         }
     }
 }
@@ -132,7 +134,13 @@ impl Value {
     pub fn to_string(value: &str) -> Value {
         Value::String(value.to_string())
     }
-
+    
+    pub fn is_number(&self) -> bool {
+        match self {
+            Value::Number(_) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
