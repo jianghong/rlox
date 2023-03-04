@@ -7,3 +7,4 @@ pub mod ast_printer;
 pub mod expr;
 pub mod parser;
 pub mod interpreter;
+pub mod test_utils;

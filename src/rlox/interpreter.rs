@@ -64,7 +64,6 @@ impl Visitor<Value> for Interpreter {
     fn visit_binary(&self, left: &Expr, operation: &Token, right: &Expr) -> Value {
         let left = self.evalute(left);
         let right = self.evalute(right);
-        
         match operation.token_type {
             TokenType::Minus => {
                 left - right
@@ -134,5 +133,51 @@ impl Visitor<Value> for Interpreter {
         } else {
             self.evalute(else_branch)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::rlox::test_utils::tests::helper_create_expr_from_string;
+    
+    #[test]
+    fn test_number_equal() {
+        let expression = helper_create_expr_from_string("1 == 1");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value, Value::True);
+    }
+
+    #[test]
+    fn test_nil_equal() {
+        let expression = helper_create_expr_from_string("nil == nil");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value, Value::True);
+    }
+
+    #[test]
+    fn test_bool_equal() {
+        let expression = helper_create_expr_from_string("true == true");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value, Value::True);
+    }
+
+    #[test]
+    fn test_string_equal() {
+        let expression = helper_create_expr_from_string("\"hello\" == \"hello\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value, Value::True);
+    }
+
+    #[test]
+    fn test_number_comparison() {
+        let expression = helper_create_expr_from_string("1 < 2");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value, Value::True);
     }
 }

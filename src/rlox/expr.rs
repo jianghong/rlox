@@ -110,7 +110,14 @@ impl PartialOrd for Value {
 
 impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
-        self == other
+        match (self, other) {
+            (Value::Nil, Value::Nil) => true,
+            (Value::True, Value::True) => true,
+            (Value::False, Value::False) => true,
+            (Value::Number(value), Value::Number(other)) => (value - other).abs() < f64::EPSILON,
+            (Value::String(value), Value::String(other)) => value == other,
+            _ => false,
+        }
     }
 }
 
@@ -128,6 +135,7 @@ impl Value {
 
 }
 
+#[derive(Debug, Clone)]
 pub enum Expr {
     Literal(Option<Value>),
     Binary {
