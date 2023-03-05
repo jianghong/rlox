@@ -33,36 +33,13 @@ impl Add for Value {
     fn add(self, other: Self) -> Result<Self> {
         match (&self, &other) {
             (Value::String(value), _) => {
-                return Ok(Value::String(format!(
-                    "{}{}",
-                    value,
-                    other
-                )));
+                return Ok(Value::String(format!("{}{}", value, other)));
             }
             (_, Value::String(value)) => {
-                return Ok(Value::String(format!(
-                    "{}{}",
-                    self,
-                    value,
-                )));
+                return Ok(Value::String(format!("{}{}", self, value,)));
             }
-            _ => match self {
-                Value::Number(value) => {
-                    if let Value::Number(other) = other {
-                        Ok(Value::Number(value + other))
-                    } else {
-                        Err(anyhow!("Applying '+' operator to a non number."))
-                    }
-                }
-                Value::String(value) => Ok(Value::String(format!(
-                    "{}{}",
-                    value[1..value.len() - 1].to_string(),
-                    other
-                ))),
-                _ => Err(anyhow!(
-                    "Applying '+' operator to value that is not applicable."
-                )),
-            },
+            (Value::Number(value), Value::Number(other)) => Ok(Value::Number(value + other)),
+            _ => Err(anyhow!("Applying '+' operator to a non number.")),
         }
     }
 }
@@ -71,14 +48,8 @@ impl Sub for Value {
     type Output = Result<Self>;
 
     fn sub(self, other: Self) -> Result<Self> {
-        match self {
-            Value::Number(value) => {
-                if let Value::Number(other) = other {
-                    Ok(Value::Number(value - other))
-                } else {
-                    Err(anyhow!("Applying '-' operator to a non number."))
-                }
-            }
+        match (self, other) {
+            (Value::Number(value), Value::Number(other)) => Ok(Value::Number(value - other)),
             _ => Err(anyhow!("Applying '-' operator to a non number.")),
         }
     }
@@ -88,14 +59,8 @@ impl Mul for Value {
     type Output = Result<Self>;
 
     fn mul(self, other: Self) -> Result<Self> {
-        match self {
-            Value::Number(value) => {
-                if let Value::Number(other) = other {
-                    Ok(Value::Number(value * other))
-                } else {
-                    Err(anyhow!("Applying '*' operator to a non number."))
-                }
-            }
+        match (self, other) {
+            (Value::Number(value), Value::Number(other)) => Ok(Value::Number(value * other)),
             _ => Err(anyhow!("Applying '*' operator to a non number.")),
         }
     }

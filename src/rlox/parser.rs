@@ -154,9 +154,8 @@ impl Parser<'_> {
         }
 
         if self.r#match(vec![TokenType::String]) {
-            dbg!(self.previous().clone());
             return Ok(Expr::Literal(Some(Value::to_string(
-                &self.previous().lexeme[1..self.previous().lexeme.len() - 1]
+                &self.previous().lexeme[1..self.previous().lexeme.len() - 1],
             ))));
         }
 

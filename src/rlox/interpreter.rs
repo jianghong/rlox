@@ -285,7 +285,10 @@ mod tests {
         let expression = helper_create_expr_from_string("true + \"hello\" + 1 + nil + \"world\"");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
-        assert_eq!(value.unwrap(), Value::String("truehello1nilworld".to_string()));
+        assert_eq!(
+            value.unwrap(),
+            Value::String("truehello1nilworld".to_string())
+        );
     }
 
     #[test]
