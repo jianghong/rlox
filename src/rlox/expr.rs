@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Result};
 
 use crate::rlox::token::Token;
-use std::ops::{Add, Sub, Mul, Div};
 use std::cmp::Ordering;
 use std::fmt::Display;
+use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Debug, Clone)]
 
@@ -33,26 +33,36 @@ impl Add for Value {
     fn add(self, other: Self) -> Result<Self> {
         match (&self, &other) {
             (Value::String(value), _) => {
-                return Ok(Value::String(format!("{}{}", value[1..value.len() - 1].to_string(), other)));
-            },
-            (_, Value::String(value)) => {
-                return Ok(Value::String(format!("{}{}", self, value[1..value.len() - 1].to_string())));
-            },
-            _ => {
-                match self {
-                    Value::Number(value) => {
-                        if let Value::Number(other) = other {
-                            Ok(Value::Number(value + other))
-                        } else {
-                            Err(anyhow!("Applying '+' operator to a non number."))
-                        }
-                    }
-                    Value::String(value) => {
-                        Ok(Value::String(format!("{}{}", value[1..value.len() - 1].to_string(), other)))
-                    }
-                    _ => Err(anyhow!("Applying '+' operator to value that is not applicable.")),
-                } 
+                return Ok(Value::String(format!(
+                    "{}{}",
+                    value[1..value.len() - 1].to_string(),
+                    other
+                )));
             }
+            (_, Value::String(value)) => {
+                return Ok(Value::String(format!(
+                    "{}{}",
+                    self,
+                    value[1..value.len() - 1].to_string()
+                )));
+            }
+            _ => match self {
+                Value::Number(value) => {
+                    if let Value::Number(other) = other {
+                        Ok(Value::Number(value + other))
+                    } else {
+                        Err(anyhow!("Applying '+' operator to a non number."))
+                    }
+                }
+                Value::String(value) => Ok(Value::String(format!(
+                    "{}{}",
+                    value[1..value.len() - 1].to_string(),
+                    other
+                ))),
+                _ => Err(anyhow!(
+                    "Applying '+' operator to value that is not applicable."
+                )),
+            },
         }
     }
 }
@@ -153,7 +163,7 @@ impl Value {
     pub fn to_string(value: &str) -> Value {
         Value::String(value.to_string())
     }
-    
+
     pub fn is_number(&self) -> bool {
         match self {
             Value::Number(_) => true,
@@ -166,9 +176,9 @@ impl Value {
 pub enum Expr {
     Literal(Option<Value>),
     Binary {
-        left:Box<Expr>,
+        left: Box<Expr>,
         operator: Token,
-        right: Box<Expr>
+        right: Box<Expr>,
     },
     Grouping {
         expression: Box<Expr>,
@@ -178,7 +188,7 @@ pub enum Expr {
         right: Box<Expr>,
     },
     Ternary {
-    condition: Box<Expr>,
+        condition: Box<Expr>,
         then_branch: Box<Expr>,
         else_branch: Box<Expr>,
     },
@@ -188,10 +198,18 @@ impl Expr {
     pub fn accept<T>(&self, visitor: &dyn Visitor<T>) -> T {
         match self {
             Expr::Literal(value) => visitor.visit_literal(value),
-            Expr::Binary { left, operator, right } => visitor.visit_binary(left, operator, right),
+            Expr::Binary {
+                left,
+                operator,
+                right,
+            } => visitor.visit_binary(left, operator, right),
             Expr::Grouping { expression } => visitor.visit_grouping(expression),
             Expr::Unary { operator, right } => visitor.visit_unary(operator, right),
-            Expr::Ternary { condition, then_branch, else_branch } => visitor.visit_ternary(condition, then_branch, else_branch),
+            Expr::Ternary {
+                condition,
+                then_branch,
+                else_branch,
+            } => visitor.visit_ternary(condition, then_branch, else_branch),
         }
     }
 }
@@ -203,5 +221,3 @@ pub trait Visitor<T> {
     fn visit_unary(&self, operator: &Token, right: &Expr) -> T;
     fn visit_ternary(&self, condition: &Expr, then_branch: &Expr, else_branch: &Expr) -> T;
 }
-
-
