@@ -22,7 +22,7 @@ impl Display for Value {
             Value::True => write!(f, "true"),
             Value::False => write!(f, "false"),
             Value::Number(value) => write!(f, "{}", value),
-            Value::String(ref value) => write!(f, "{}", value[1..value.len() - 1].to_string()),
+            Value::String(ref value) => write!(f, "{}", value),
         }
     }
 }
@@ -35,7 +35,7 @@ impl Add for Value {
             (Value::String(value), _) => {
                 return Ok(Value::String(format!(
                     "{}{}",
-                    value[1..value.len() - 1].to_string(),
+                    value,
                     other
                 )));
             }
@@ -43,7 +43,7 @@ impl Add for Value {
                 return Ok(Value::String(format!(
                     "{}{}",
                     self,
-                    value[1..value.len() - 1].to_string()
+                    value,
                 )));
             }
             _ => match self {
