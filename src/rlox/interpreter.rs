@@ -287,4 +287,12 @@ mod tests {
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::String("truehello1nilworld".to_string()));
     }
+
+    #[test]
+    fn test_divide_by_zero_reports_runtime_error() {
+        let expression = helper_create_expr_from_string("1 / 0");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert!(value.is_err());
+    }
 }

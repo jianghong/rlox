@@ -105,15 +105,14 @@ impl Div for Value {
     type Output = Result<Self>;
 
     fn div(self, other: Self) -> Result<Self> {
-        match self {
-            Value::Number(value) => {
-                if let Value::Number(other) = other {
-                    Ok(Value::Number(value / other))
-                } else {
-                    Err(anyhow!("Applying '/' operator to a non number."))
+        match (self, other) {
+            (Value::Number(value), Value::Number(other)) => {
+                if other == 0.0 {
+                    return Err(anyhow!("Division by zero."));
                 }
+                return Ok(Value::Number(value / other));
             }
-            _ => Err(anyhow!("Applying '/' operator to a non number.")),
+            _ => return Err(anyhow!("Applying '/' operator to a non number.")),
         }
     }
 }
