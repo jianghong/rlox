@@ -1,7 +1,7 @@
 use super::error_reporter::ErrorReporter;
-use super::scanner::Scanner;
-use super::parser::Parser;
 use super::interpreter::Interpreter;
+use super::parser::Parser;
+use super::scanner::Scanner;
 
 pub struct Lox {
     error_reporter: ErrorReporter,
@@ -46,7 +46,7 @@ impl Lox {
         scanner.scan_tokens();
         let tokens = scanner.tokens;
         let mut parser = Parser::new(tokens, &mut self.error_reporter);
-        
+
         if let Ok(expr) = parser.parse() {
             // let mut ast_printer = AstPrinter::new();
             // let ast = expr.accept(&mut ast_printer);

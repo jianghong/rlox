@@ -1,17 +1,17 @@
+use super::expr::*;
 use super::token::Token;
 use super::token_type::TokenType;
-use super::expr::*;
 
 pub fn main() {
     let test_expr = Expr::Binary {
         left: Box::new(Expr::Unary {
             operator: Token::new(TokenType::Minus, "-".to_string(), None, 1),
-            right: Box::new(Expr::Literal(Some(Value::to_number("123"))))
+            right: Box::new(Expr::Literal(Some(Value::to_number("123")))),
         }),
         operator: Token::new(TokenType::Star, "*".to_string(), None, 1),
         right: Box::new(Expr::Grouping {
-            expression: Box::new(Expr::Literal(Some(Value::to_number("45.67"))))
-        })
+            expression: Box::new(Expr::Literal(Some(Value::to_number("45.67")))),
+        }),
     };
 
     let ast_printer = AstPrinter::new();
@@ -47,7 +47,7 @@ impl Visitor<String> for AstPrinter {
         self.parenthesize(&operator.lexeme, &vec![left, right])
     }
 
-    fn visit_grouping(&self, expr: &Expr ) -> String {
+    fn visit_grouping(&self, expr: &Expr) -> String {
         self.parenthesize(&"group".to_string(), &vec![expr])
     }
 

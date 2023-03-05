@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use super::error_reporter::ErrorReporter;
 use super::token::*;
 use super::token_type::*;
-use super::error_reporter::ErrorReporter;
 
 pub struct Scanner<'a> {
     source: String,
@@ -10,9 +10,9 @@ pub struct Scanner<'a> {
     start: u32,
     current: u32,
     line: u32,
-    
+
     error_reporter: &'a mut ErrorReporter,
-    reserved_keywords: HashMap<String, TokenType>
+    reserved_keywords: HashMap<String, TokenType>,
 }
 
 impl Scanner<'_> {
@@ -42,22 +42,23 @@ impl Scanner<'_> {
             current: 0,
             line: 1,
             error_reporter: error_reporter,
-            reserved_keywords: reserved_keywords
+            reserved_keywords: reserved_keywords,
         }
     }
-    
+
     pub fn scan_tokens(&mut self) {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token();
         }
-        self.tokens.push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
+        self.tokens
+            .push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
     }
 
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len() as u32
     }
-    
+
     fn scan_token(&mut self) {
         let c = self.advance();
         match c {
@@ -80,7 +81,7 @@ impl Scanner<'_> {
                     TokenType::Bang
                 };
                 self.add_token(token_type, None);
-            },
+            }
             '=' => {
                 let token_type = if self.r#match('=') {
                     TokenType::EqualEqual
@@ -88,7 +89,7 @@ impl Scanner<'_> {
                     TokenType::Equal
                 };
                 self.add_token(token_type, None);
-            },
+            }
             '<' => {
                 let token_type = if self.r#match('=') {
                     TokenType::LessEqual
@@ -96,7 +97,7 @@ impl Scanner<'_> {
                     TokenType::Less
                 };
                 self.add_token(token_type, None);
-            },
+            }
             '>' => {
                 let token_type = if self.r#match('=') {
                     TokenType::GreaterEqual
@@ -104,7 +105,7 @@ impl Scanner<'_> {
                     TokenType::Greater
                 };
                 self.add_token(token_type, None);
-            },
+            }
             '/' => {
                 if self.r#match('/') {
                     // A comment goes until the end of the line.
@@ -117,7 +118,8 @@ impl Scanner<'_> {
                         self.advance();
 
                         if self.is_at_end() {
-                            self.error_reporter.error(self.line, &"Unterminated comment".to_string());
+                            self.error_reporter
+                                .error(self.line, &"Unterminated comment".to_string());
                             break;
                         }
                     }
@@ -128,8 +130,8 @@ impl Scanner<'_> {
                 } else {
                     self.add_token(TokenType::Slash, None);
                 }
-            },
-            ' ' | '\r' | '\t' => {},
+            }
+            ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
             '"' => self.string(),
             unexpected => {
@@ -138,19 +140,23 @@ impl Scanner<'_> {
                 } else if self.is_alpha(c) {
                     self.identifier();
                 } else {
-                    self.error_reporter.error(self.line, &format!("Unexpected character {unexpected}"));
+                    self.error_reporter
+                        .error(self.line, &format!("Unexpected character {unexpected}"));
                 }
             }
         }
     }
-    
+
     fn identifier(&mut self) {
         while self.is_alpha_numeric(self.peek()) {
             self.advance();
         }
 
         let text = &self.source[self.start as usize..self.current as usize];
-        let token_type = self.reserved_keywords.get(text).unwrap_or(&TokenType::Identifier);
+        let token_type = self
+            .reserved_keywords
+            .get(text)
+            .unwrap_or(&TokenType::Identifier);
         self.add_token(token_type.clone(), None)
     }
 
@@ -169,7 +175,7 @@ impl Scanner<'_> {
 
         self.add_token(
             TokenType::Number,
-            Some(self.source[self.start as usize..self.current as usize].to_string())
+            Some(self.source[self.start as usize..self.current as usize].to_string()),
         );
     }
 
@@ -182,31 +188,32 @@ impl Scanner<'_> {
         }
 
         if self.is_at_end() {
-            self.error_reporter.error(self.line, &"Unterminated string.".to_string());
+            self.error_reporter
+                .error(self.line, &"Unterminated string.".to_string());
         }
 
         self.advance();
 
         let value = &self.source[self.start as usize + 1..self.current as usize - 1];
-        self.add_token(TokenType::String, Some(value.to_string()));   
+        self.add_token(TokenType::String, Some(value.to_string()));
     }
 
     fn r#match(&mut self, expected: char) -> bool {
         if self.is_at_end() {
-            return false
+            return false;
         }
 
         if self.source.chars().nth(self.current as usize).unwrap() != expected {
-            return false
+            return false;
         }
 
         self.current += 1;
-        return true
+        return true;
     }
 
     fn peek(&self) -> char {
         if self.is_at_end() {
-            return '\0'
+            return '\0';
         }
 
         self.source.chars().nth(self.current as usize).unwrap()
@@ -214,15 +221,19 @@ impl Scanner<'_> {
 
     fn peek_next(&self) -> char {
         if self.current + 1 >= self.source.len() as u32 {
-            return '\0'
+            return '\0';
         }
-        return self.source.chars().nth((self.current + 1) as usize).unwrap()
+        return self
+            .source
+            .chars()
+            .nth((self.current + 1) as usize)
+            .unwrap();
     }
-    
+
     fn is_alpha(&self, c: char) -> bool {
         (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
     }
-    
+
     fn is_alpha_numeric(&self, c: char) -> bool {
         self.is_alpha(c) || self.is_digit(c)
     }
@@ -233,18 +244,15 @@ impl Scanner<'_> {
 
     fn advance(&mut self) -> char {
         self.current += 1;
-        self.source.chars().nth((self.current - 1) as usize).unwrap()
+        self.source
+            .chars()
+            .nth((self.current - 1) as usize)
+            .unwrap()
     }
 
     fn add_token(&mut self, token_type: TokenType, literal: Option<String>) {
         let text = &self.source[self.start as usize..self.current as usize];
-        self.tokens.push(
-            Token::new(
-                token_type,
-                text.to_string(),
-                literal,
-                self.line
-            )
-        );
+        self.tokens
+            .push(Token::new(token_type, text.to_string(), literal, self.line));
     }
 }

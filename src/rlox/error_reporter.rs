@@ -14,7 +14,7 @@ impl ErrorReporter {
         self.report(line, &"".to_string(), message);
     }
 
-    pub fn token_error(&mut self , token: Token, message: &String) {
+    pub fn token_error(&mut self, token: Token, message: &String) {
         if token.token_type == TokenType::EOF {
             self.report(token.line, &"at end".to_string(), message);
         } else {

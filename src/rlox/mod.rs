@@ -1,10 +1,10 @@
-pub mod lox;
-pub mod token_type;
-pub mod token;
-pub mod scanner;
-pub mod error_reporter;
 pub mod ast_printer;
+pub mod error_reporter;
 pub mod expr;
-pub mod parser;
 pub mod interpreter;
+pub mod lox;
+pub mod parser;
+pub mod scanner;
 pub mod test_utils;
+pub mod token;
+pub mod token_type;

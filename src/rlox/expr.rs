@@ -3,6 +3,7 @@ use anyhow::{anyhow, Result};
 use crate::rlox::token::Token;
 use std::ops::{Add, Sub, Mul, Div};
 use std::cmp::Ordering;
+use std::fmt::Display;
 
 #[derive(Debug, Clone)]
 
@@ -14,27 +15,45 @@ pub enum Value {
     String(String),
 }
 
+impl Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Value::Nil => write!(f, "nil"),
+            Value::True => write!(f, "true"),
+            Value::False => write!(f, "false"),
+            Value::Number(value) => write!(f, "{}", value),
+            Value::String(ref value) => write!(f, "{}", value[1..value.len() - 1].to_string()),
+        }
+    }
+}
+
 impl Add for Value {
     type Output = Result<Self>;
 
     fn add(self, other: Self) -> Result<Self> {
-        match self {
-            Value::Number(value) => {
-                if let Value::Number(other) = other {
-                    Ok(Value::Number(value + other))
-                } else {
-                    Err(anyhow!("Applying '+' operator to a non number."))
-                }
+        match (&self, &other) {
+            (Value::String(value), _) => {
+                return Ok(Value::String(format!("{}{}", value[1..value.len() - 1].to_string(), other)));
+            },
+            (_, Value::String(value)) => {
+                return Ok(Value::String(format!("{}{}", self, value[1..value.len() - 1].to_string())));
+            },
+            _ => {
+                match self {
+                    Value::Number(value) => {
+                        if let Value::Number(other) = other {
+                            Ok(Value::Number(value + other))
+                        } else {
+                            Err(anyhow!("Applying '+' operator to a non number."))
+                        }
+                    }
+                    Value::String(value) => {
+                        Ok(Value::String(format!("{}{}", value[1..value.len() - 1].to_string(), other)))
+                    }
+                    _ => Err(anyhow!("Applying '+' operator to value that is not applicable.")),
+                } 
             }
-            Value::String(value) => {
-                if let Value::String(other) = other {
-                    Ok(Value::String(format!("{}{}", value, other)))
-                } else {
-                    Err(anyhow!("Applying '+' operator to a non string."))
-                }
-            }
-            _ => Err(anyhow!("Applying '+' operator to value that is not applicable.")),
-        } 
+        }
     }
 }
 

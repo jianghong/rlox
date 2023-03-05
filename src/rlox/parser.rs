@@ -1,10 +1,9 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
-
+use super::error_reporter::ErrorReporter;
+use super::expr::*;
 use super::token::Token;
 use super::token_type::TokenType;
-use super::expr::*;
-use super::error_reporter::ErrorReporter;
 
 pub struct Parser<'a> {
     tokens: Vec<Token>,
@@ -13,12 +12,15 @@ pub struct Parser<'a> {
     error_reporter: &'a mut ErrorReporter,
 }
 
-
 impl Parser<'_> {
-    pub fn new(tokens: Vec<Token>, error_reporter: &mut ErrorReporter ) -> Parser {
-        Parser { tokens, current: 0, error_reporter: error_reporter }
+    pub fn new(tokens: Vec<Token>, error_reporter: &mut ErrorReporter) -> Parser {
+        Parser {
+            tokens,
+            current: 0,
+            error_reporter: error_reporter,
+        }
     }
-    
+
     pub fn parse(&mut self) -> Result<Expr> {
         self.expression()
     }
@@ -123,7 +125,10 @@ impl Parser<'_> {
         if self.r#match(vec![TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
             let right = self.unary()?;
-            return Ok(Expr::Unary { operator, right: Box::new(right) });
+            return Ok(Expr::Unary {
+                operator,
+                right: Box::new(right),
+            });
         }
 
         self.primary()
@@ -143,17 +148,23 @@ impl Parser<'_> {
         }
 
         if self.r#match(vec![TokenType::Number]) {
-            return Ok(Expr::Literal(Some(Value::to_number(&self.previous().lexeme))));
+            return Ok(Expr::Literal(Some(Value::to_number(
+                &self.previous().lexeme,
+            ))));
         }
 
         if self.r#match(vec![TokenType::String]) {
-            return Ok(Expr::Literal(Some(Value::to_string(&self.previous().lexeme))));
-        }        
+            return Ok(Expr::Literal(Some(Value::to_string(
+                &self.previous().lexeme,
+            ))));
+        }
 
         if self.r#match(vec![TokenType::LeftParen]) {
             let expr = self.expression()?;
             self.consume(TokenType::RightParen, "Expect ')' after expression.")?;
-            return Ok(Expr::Grouping { expression: Box::new(expr) });
+            return Ok(Expr::Grouping {
+                expression: Box::new(expr),
+            });
         }
 
         Err(anyhow!("Expect expression."))
@@ -165,7 +176,8 @@ impl Parser<'_> {
             Ok(())
         } else {
             let message = message.to_string();
-            self.error_reporter.token_error(self.peek().clone(), &message);
+            self.error_reporter
+                .token_error(self.peek().clone(), &message);
             Err(anyhow!(message))
         }
     }

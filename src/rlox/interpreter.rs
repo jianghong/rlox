@@ -1,9 +1,9 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
+use crate::rlox::error_reporter::ErrorReporter;
 use crate::rlox::expr::*;
 use crate::rlox::token::Token;
 use crate::rlox::token_type::TokenType;
-use crate::rlox::error_reporter::ErrorReporter;
 
 pub struct Interpreter;
 
@@ -16,7 +16,7 @@ impl Interpreter {
         let result = self.evalute(expression);
         match result {
             Ok(value) => println!("{}", self.stringify(&value)),
-            Err(error) => error_reporter.error(0, &error.to_string())
+            Err(error) => error_reporter.error(0, &error.to_string()),
         }
     }
 
@@ -32,7 +32,7 @@ impl Interpreter {
             _ => Value::True,
         }
     }
-    
+
     fn stringify(&self, value: &Value) -> String {
         match value {
             Value::Nil => "nil".to_string(),
@@ -50,13 +50,13 @@ impl Visitor<Result<Value>> for Interpreter {
             Some(value) => value.clone(),
             None => Value::Nil,
         };
-        
+
         Ok(value)
     }
 
     fn visit_unary(&self, operator: &Token, right: &Expr) -> Result<Value> {
         let right = self.evalute(right)?;
-        
+
         match operator.token_type {
             TokenType::Minus => {
                 if let Value::Number(value) = right {
@@ -66,7 +66,7 @@ impl Visitor<Result<Value>> for Interpreter {
                 }
             }
             TokenType::Bang => Ok(self.is_truthy(&right)),
-            _ => Ok(right)
+            _ => Ok(right),
         }
     }
 
@@ -74,18 +74,10 @@ impl Visitor<Result<Value>> for Interpreter {
         let left = self.evalute(left)?;
         let right = self.evalute(right)?;
         match operation.token_type {
-            TokenType::Minus => {
-                left - right
-            },
-            TokenType::Plus => {
-                left + right
-            },
-            TokenType::Slash => {
-                left / right
-            },
-            TokenType::Star => {
-                left * right
-            },
+            TokenType::Minus => left - right,
+            TokenType::Plus => left + right,
+            TokenType::Slash => left / right,
+            TokenType::Star => left * right,
             TokenType::Greater => {
                 if !left.is_number() || !right.is_number() {
                     return Err(anyhow!("Applying '>' operator to a non number."));
@@ -96,7 +88,7 @@ impl Visitor<Result<Value>> for Interpreter {
                     Value::False
                 };
                 Ok(value)
-            },
+            }
             TokenType::GreaterEqual => {
                 if !left.is_number() || !right.is_number() {
                     return Err(anyhow!("Applying '>' operator to a non number."));
@@ -107,7 +99,7 @@ impl Visitor<Result<Value>> for Interpreter {
                     Value::False
                 };
                 Ok(value)
-            },
+            }
             TokenType::Less => {
                 if !left.is_number() || !right.is_number() {
                     return Err(anyhow!("Applying '>' operator to a non number."));
@@ -118,7 +110,7 @@ impl Visitor<Result<Value>> for Interpreter {
                     Value::False
                 };
                 Ok(value)
-            },
+            }
             TokenType::LessEqual => {
                 if !left.is_number() || !right.is_number() {
                     return Err(anyhow!("Applying '>' operator to a non number."));
@@ -129,7 +121,7 @@ impl Visitor<Result<Value>> for Interpreter {
                     Value::False
                 };
                 Ok(value)
-            },
+            }
             TokenType::BangEqual => {
                 let value = if left != right {
                     Value::True
@@ -137,7 +129,7 @@ impl Visitor<Result<Value>> for Interpreter {
                     Value::False
                 };
                 Ok(value)
-            },
+            }
             TokenType::EqualEqual => {
                 let value = if left == right {
                     Value::True
@@ -145,8 +137,11 @@ impl Visitor<Result<Value>> for Interpreter {
                     Value::False
                 };
                 Ok(value)
-            },
-            _ => Err(anyhow!("Invalid binary operation: {}", operation.token_type.to_string()))
+            }
+            _ => Err(anyhow!(
+                "Invalid binary operation: {}",
+                operation.token_type.to_string()
+            )),
         }
     }
 
@@ -154,7 +149,12 @@ impl Visitor<Result<Value>> for Interpreter {
         self.evalute(expression)
     }
 
-    fn visit_ternary(&self, condition: &Expr, then_branch: &Expr, else_branch: &Expr) -> Result<Value> {
+    fn visit_ternary(
+        &self,
+        condition: &Expr,
+        then_branch: &Expr,
+        else_branch: &Expr,
+    ) -> Result<Value> {
         if self.is_truthy(&self.evalute(condition)?) == Value::True {
             self.evalute(then_branch)
         } else {
@@ -166,7 +166,7 @@ impl Visitor<Result<Value>> for Interpreter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rlox::{test_utils::tests::helper_create_expr_from_string};
+    use crate::rlox::test_utils::tests::helper_create_expr_from_string;
 
     #[test]
     fn test_number_equal() {
@@ -221,7 +221,7 @@ mod tests {
         let expression = helper_create_expr_from_string("1 + \"world\"");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
-        assert!(value.is_err());
+        assert_eq!(value.unwrap(), Value::String("1world".to_string()));
     }
 
     #[test]
@@ -262,5 +262,21 @@ mod tests {
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::False);
+    }
+
+    #[test]
+    fn test_add_string_with_non_string() {
+        let expression = helper_create_expr_from_string("\"hello\" + 1");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value.unwrap(), Value::String("hello1".to_string()));
+    }
+
+    #[test]
+    fn test_add_non_string_with_string() {
+        let expression = helper_create_expr_from_string("true + \"hello\"");
+        let interpreter = Interpreter::new();
+        let value = interpreter.evalute(&expression);
+        assert_eq!(value.unwrap(), Value::String("truehello".to_string()));
     }
 }
