@@ -1,5 +1,7 @@
-use super::token::Token;
-use super::token_type::TokenType;
+use super::{
+    token::Token,
+    token_type::TokenType
+};
 
 pub struct ErrorReporter {
     pub had_error: bool,

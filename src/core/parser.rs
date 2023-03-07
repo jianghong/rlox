@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Result};
 
-use super::error_reporter::ErrorReporter;
-use super::expr::*;
-use super::token::Token;
-use super::token_type::TokenType;
+use super::{
+    error_reporter::ErrorReporter,
+    expr::{Expr, Value},
+    token::Token,
+    token_type::TokenType,
+};
 
 pub struct Parser<'a> {
     tokens: Vec<Token>,

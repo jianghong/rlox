@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Result};
 
-use crate::rlox::error_reporter::ErrorReporter;
-use crate::rlox::expr::*;
-use crate::rlox::token::Token;
-use crate::rlox::token_type::TokenType;
+use super::{
+    error_reporter::ErrorReporter,
+    expr::*,
+    token::Token,
+    token_type::TokenType,
+};
 
 pub struct Interpreter;
 
@@ -166,7 +168,7 @@ impl Visitor<Result<Value>> for Interpreter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rlox::test_utils::tests::helper_create_expr_from_string;
+    use crate::core::test_utils::tests::helper_create_expr_from_string;
 
     #[test]
     fn test_number_equal() {

@@ -1,9 +1,10 @@
+use std::{
+    cmp::Ordering,
+    fmt::Display,
+    ops::{Add, Div, Mul, Sub}
+};
 use anyhow::{anyhow, Result};
-
-use crate::rlox::token::Token;
-use std::cmp::Ordering;
-use std::fmt::Display;
-use std::ops::{Add, Div, Mul, Sub};
+use super::token::Token;
 
 #[derive(Debug, Clone)]
 
