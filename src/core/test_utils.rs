@@ -1,9 +1,8 @@
 #[cfg(test)]
 pub mod tests {
-    use crate::rlox::error_reporter::ErrorReporter;
-    use crate::rlox::expr::Expr;
-    use crate::rlox::parser::Parser;
-    use crate::rlox::scanner::Scanner;
+    use crate::core::{
+        error_reporter::ErrorReporter, expr::Expr, parser::Parser, scanner::Scanner,
+    };
 
     pub fn helper_create_expr_from_string(expression: &str) -> Expr {
         let mut error_reporter = ErrorReporter::new();

@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use super::error_reporter::ErrorReporter;
-use super::token::*;
-use super::token_type::*;
+use super::{error_reporter::ErrorReporter, token::*, token_type::*};
 
 pub struct Scanner<'a> {
     source: String,

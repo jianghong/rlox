@@ -1,7 +1,6 @@
-use super::error_reporter::ErrorReporter;
-use super::interpreter::Interpreter;
-use super::parser::Parser;
-use super::scanner::Scanner;
+use super::{
+    error_reporter::ErrorReporter, interpreter::Interpreter, parser::Parser, scanner::Scanner,
+};
 
 pub struct Lox {
     error_reporter: ErrorReporter,

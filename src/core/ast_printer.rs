@@ -1,6 +1,4 @@
-use super::expr::*;
-use super::token::Token;
-use super::token_type::TokenType;
+use super::{expr::*, token::Token, token_type::TokenType};
 
 pub fn main() {
     let test_expr = Expr::Binary {
