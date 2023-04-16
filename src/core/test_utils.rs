@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
     use crate::core::{
-        error_reporter::ErrorReporter, expr::Expr, parser::Parser, scanner::Scanner,
+        error_reporter::ErrorReporter, expr::Expr, parser::Parser, scanner::Scanner, stmt::Stmt,
     };
 
     pub fn helper_create_expr_from_string(expression: &str) -> Expr {
@@ -10,6 +10,11 @@ pub mod tests {
         scanner.scan_tokens();
         let tokens = scanner.tokens;
         let mut parser = Parser::new(tokens, &mut error_reporter);
-        parser.parse().unwrap()
+        let stmt = parser.parse().unwrap();
+        let expr = match &stmt[0] {
+            Stmt::Expression(expr) => expr,
+            _ => panic!("Expected expression"),
+        };
+        expr.clone()
     }
 }

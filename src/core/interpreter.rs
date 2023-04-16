@@ -1,6 +1,12 @@
 use anyhow::{anyhow, Result};
 
-use super::{error_reporter::ErrorReporter, expr::*, token::Token, token_type::TokenType};
+use super::{
+    error_reporter::ErrorReporter,
+    expr::{Expr, Value, Visitor as ExprVisitor},
+    stmt::{Stmt, Visitor as StmtVisitor, Void},
+    token::Token,
+    token_type::TokenType,
+};
 
 pub struct Interpreter;
 
@@ -9,14 +15,17 @@ impl Interpreter {
         Interpreter
     }
 
-    pub fn interpret(&self, expression: &Expr, error_reporter: &mut ErrorReporter) {
-        let result = self.evalute(expression);
-        match result {
-            Ok(value) => println!("{}", self.stringify(&value)),
-            Err(error) => error_reporter.error(0, &error.to_string()),
+    pub fn interpret(&self, statements: &Vec<Stmt>, error_reporter: &mut ErrorReporter) {
+        for statement in statements {
+            self.execute(statement)
+                .map_err(|error| error_reporter.error(0, &error.to_string()))
+                .ok();
         }
     }
 
+    fn execute(&self, statement: &Stmt) -> Result<Void> {
+        statement.accept(self)
+    }
     fn evalute(&self, expression: &Expr) -> Result<Value> {
         expression.accept(self)
     }
@@ -41,7 +50,7 @@ impl Interpreter {
     }
 }
 
-impl Visitor<Result<Value>> for Interpreter {
+impl ExprVisitor<Result<Value>> for Interpreter {
     fn visit_literal(&self, value: &Option<Value>) -> Result<Value> {
         let value = match value {
             Some(value) => value.clone(),
@@ -160,6 +169,19 @@ impl Visitor<Result<Value>> for Interpreter {
     }
 }
 
+impl StmtVisitor<Result<Void>> for Interpreter {
+    fn visit_expression(&self, expr: &Expr) -> Result<Void> {
+        self.evalute(expr)?;
+        Ok(Void)
+    }
+
+    fn visit_print(&self, expr: &Expr) -> Result<Void> {
+        let value = self.evalute(expr)?;
+        println!("{}", self.stringify(&value));
+        Ok(Void)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -167,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_number_equal() {
-        let expression = helper_create_expr_from_string("1 == 1");
+        let expression = helper_create_expr_from_string("1 == 1;");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::True);
@@ -175,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_nil_equal() {
-        let expression = helper_create_expr_from_string("nil == nil");
+        let expression = helper_create_expr_from_string("nil == nil;");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::True);
@@ -183,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_bool_equal() {
-        let expression = helper_create_expr_from_string("true == true");
+        let expression = helper_create_expr_from_string("true == true;");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::True);
@@ -191,7 +213,7 @@ mod tests {
 
     #[test]
     fn test_string_equal() {
-        let expression = helper_create_expr_from_string("\"hello\" == \"hello\"");
+        let expression = helper_create_expr_from_string("\"hello\" == \"hello\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::True);
@@ -199,7 +221,7 @@ mod tests {
 
     #[test]
     fn test_number_comparison() {
-        let expression = helper_create_expr_from_string("1 < 2");
+        let expression = helper_create_expr_from_string("1 < 2;");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::True);
@@ -207,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_unary_minus_on_non_number() {
-        let expression = helper_create_expr_from_string("-\"hello\"");
+        let expression = helper_create_expr_from_string("-\"hello\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert!(value.is_err());
@@ -215,7 +237,7 @@ mod tests {
 
     #[test]
     fn test_add_number_with_non_number() {
-        let expression = helper_create_expr_from_string("1 + \"world\"");
+        let expression = helper_create_expr_from_string("1 + \"world\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::String("1world".to_string()));
@@ -223,7 +245,7 @@ mod tests {
 
     #[test]
     fn test_sub_number_with_non_number() {
-        let expression = helper_create_expr_from_string("1 - \"world\"");
+        let expression = helper_create_expr_from_string("1 - \"world\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert!(value.is_err());
@@ -231,7 +253,7 @@ mod tests {
 
     #[test]
     fn test_mul_number_with_non_number() {
-        let expression = helper_create_expr_from_string("1 * \"world\"");
+        let expression = helper_create_expr_from_string("1 * \"world\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert!(value.is_err());
@@ -239,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_div_number_with_non_number() {
-        let expression = helper_create_expr_from_string("1 / \"world\"");
+        let expression = helper_create_expr_from_string("1 / \"world\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert!(value.is_err());
@@ -247,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_compare_number_with_non_number() {
-        let expression = helper_create_expr_from_string("1 < \"world\"");
+        let expression = helper_create_expr_from_string("1 < \"world\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert!(value.is_err());
@@ -255,7 +277,7 @@ mod tests {
 
     #[test]
     fn test_number_equal_non_number() {
-        let expression = helper_create_expr_from_string("1 == \"world\"");
+        let expression = helper_create_expr_from_string("1 == \"world\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::False);
@@ -263,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_add_string_with_non_string() {
-        let expression = helper_create_expr_from_string("\"hello\" + 1");
+        let expression = helper_create_expr_from_string("\"hello\" + 1;");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::String("hello1".to_string()));
@@ -271,7 +293,7 @@ mod tests {
 
     #[test]
     fn test_add_non_string_with_string() {
-        let expression = helper_create_expr_from_string("true + \"hello\"");
+        let expression = helper_create_expr_from_string("true + \"hello\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(value.unwrap(), Value::String("truehello".to_string()));
@@ -279,7 +301,7 @@ mod tests {
 
     #[test]
     fn test_adding_string_with_non_string_n_times() {
-        let expression = helper_create_expr_from_string("true + \"hello\" + 1 + nil + \"world\"");
+        let expression = helper_create_expr_from_string("true + \"hello\" + 1 + nil + \"world\";");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert_eq!(
@@ -290,7 +312,7 @@ mod tests {
 
     #[test]
     fn test_divide_by_zero_reports_runtime_error() {
-        let expression = helper_create_expr_from_string("1 / 0");
+        let expression = helper_create_expr_from_string("1 / 0;");
         let interpreter = Interpreter::new();
         let value = interpreter.evalute(&expression);
         assert!(value.is_err());
