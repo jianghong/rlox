@@ -2,7 +2,10 @@
 
 Grammar
 ```
-program        → statement* EOF ;
+program        → declaration* EOF ;
+declaration    → varDecl
+               | statement ;
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 statement      → exprStmt
                | printStmt
 exprStmt       → expression ";" ;
@@ -16,11 +19,14 @@ term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
-primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+primary        → "true" | "false" | "nil"
+               | NUMBER | STRING
+               | "(" expression ")"
+               | IDENTIFIER ;
 ```
 
 # TODOs
 - [x] Comparisons crash with stack overflow
 - [x] https://craftinginterpreters.com/evaluating-expressions.html#runtime-errors
 - [x] https://craftinginterpreters.com/evaluating-expressions.html extra credit section
+- [ ] Implementing declarations and error recovery with syncronization https://craftinginterpreters.com/statements-and-state.html#parsing-variables

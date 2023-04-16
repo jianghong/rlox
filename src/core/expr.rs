@@ -156,6 +156,7 @@ pub enum Expr {
         then_branch: Box<Expr>,
         else_branch: Box<Expr>,
     },
+    Variable(Token)
 }
 
 impl Expr {
@@ -174,6 +175,7 @@ impl Expr {
                 then_branch,
                 else_branch,
             } => visitor.visit_ternary(condition, then_branch, else_branch),
+            Expr::Variable(token) => visitor.visit_variable(token)
         }
     }
 }
@@ -184,4 +186,5 @@ pub trait Visitor<T> {
     fn visit_grouping(&self, expression: &Expr) -> T;
     fn visit_unary(&self, operator: &Token, right: &Expr) -> T;
     fn visit_ternary(&self, condition: &Expr, then_branch: &Expr, else_branch: &Expr) -> T;
+    fn visit_variable(&self, token: &Token) -> T;
 }

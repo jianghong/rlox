@@ -33,6 +33,28 @@ impl Parser<'_> {
         Ok(statements)
     }
 
+    fn declaration(&mut self) -> Result<Stmt> {
+        if self.r#match(vec![TokenType::Var]) {
+            return self.var_declaration();
+        }
+
+        return self.statement();
+    }
+
+    // fn var_declaration(&mut self) -> Result<Stmt> {
+    //     let name = self.consume(TokenType::Identifier, "Expect variable name.")?;
+
+    //     let mut initializer = None;
+    //     if self.r#match(vec![TokenType::Equal]) {
+    //         initializer = Some(self.expression()?);
+    //     }
+
+    //     self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.")?;
+    //     Ok(Stmt::Var {
+    //         name,
+    //         initializer,
+    //     })
+    // }
     fn statement(&mut self) -> Result<Stmt> {
         if self.r#match(vec![TokenType::Print]) {
             return self.print_statement();
